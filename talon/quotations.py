@@ -422,14 +422,18 @@ def extract_from_html(msg_body):
     Returns a unicode string.
     """
     if isinstance(msg_body, six.text_type):
+        log.info("Is text_type")
         msg_body = msg_body.encode('utf8')
     elif not isinstance(msg_body, bytes):
+        log.info("Is ascii")
         msg_body = msg_body.encode('ascii')
 
+    log.info(msg_body)
     result = _extract_from_html(msg_body)
     if isinstance(result, bytes):
+        log.info("Is utf8")
         result = result.decode('utf8')
-
+    log.info(result)
     return result
 
 
@@ -452,7 +456,9 @@ def _extract_from_html(msg_body):
     then checking deleted checkpoints,
     then deleting necessary tags.
     """
+    log.info("extract_from_html")
     if msg_body.strip() == b'':
+        log.info("b return")
         return msg_body
 
     msg_body = msg_body.replace(b'\r\n', b'\n')
@@ -462,6 +468,7 @@ def _extract_from_html(msg_body):
     html_tree = html_document_fromstring(msg_body)
 
     if html_tree is None:
+        log.info("html tree is none")
         return msg_body
 
     cut_quotations = (html_quotations.cut_gmail_quote(html_tree) or
@@ -500,6 +507,7 @@ def _extract_from_html(msg_body):
     lines_were_deleted, first_deleted, last_deleted = return_flags
 
     if not lines_were_deleted and not cut_quotations:
+        log.info("cut")
         return msg_body
 
     if lines_were_deleted:
@@ -513,10 +521,13 @@ def _extract_from_html(msg_body):
             html_tree_copy, 0, quotation_checkpoints
         )
 
+    log.info("done")
     if _readable_text_empty(html_tree_copy):
+        log.info("readable")
         return msg_body
 
-    return html.tostring(html_tree_copy)
+    log.info("tostring")
+    return html.tostring(html_tree_copy, encoding='unicode')
 
 
 def split_emails(msg):
